@@ -16,10 +16,10 @@ This block allows our program to access the MySQL database.
 Elaborated on in 2.2.3.
  */
 require_once '../login.php';
-$db_server = mysql_connect($host, $username, $password);
-if (!$db_server) die("Unable to connect to MySQL: " . mysql_error());
-mysql_select_db($dbname)
-	or die("Unable to select database: " . mysql_error());
+$db_server = mysqli_connect($host, $username, $password);
+if (!$db_server) die("Unable to connect to MySQL: " . mysqli_error($db_server));
+mysqli_select_db($db_server,$dbname)
+	or die("Unable to select database: " . mysqli_error($db_server));
 
 // Only one use case, the user must have entered an account name, password, and confirmed it
 // in order to create an account	
@@ -28,9 +28,9 @@ if (isset($_POST['new_user']) &&
 	isset($_POST['conf_pwd']))
 {
 	// The get_post function is defined below to collect data from the POST protocol.
-	$new_user = get_post('new_user');
-	$new_pwd = get_post('new_pwd');
-	$conf_pwd = get_post('conf_pwd');
+	$new_user = get_post($db_server,'new_user');
+	$new_pwd = get_post($db_server,'new_pwd');
+	$conf_pwd = get_post($db_server,'conf_pwd');
 	
 	// Verify that the password matches the password entered in the confirmation field.
 	if ($new_pwd == $conf_pwd)
@@ -38,8 +38,8 @@ if (isset($_POST['new_user']) &&
 		// MySQL query retrieval examined in 2.2.3
 		// returns any database row matching the desired user name
 		$query = "SELECT * FROM artists WHERE username='" . $new_user . "'";
-		$result = mysql_query($query, $db_server);
-		$row = mysql_fetch_row($result);
+		$result = mysqli_query($db_server,$query);
+		$row = mysqli_fetch_row($result);
 		
 		// Checks to make sure that there were no entries in our database for the desired user name
 		if (!$row)
@@ -47,9 +47,9 @@ if (isset($_POST['new_user']) &&
 			// This conditional block creates the new account in the database if possible
 			$query = "INSERT INTO artists VALUES" .
 				"('' ,'$new_user', '$new_pwd', '', '')";
-			if (!mysql_query($query, $db_server))
+			if (!mysqli_query($db_server,$query))
 				echo "INSERT failed: $query<br/>" .
-					mysql_error() . "<br /><br />";
+					mysqli_error($db_server) . "<br /><br />";
 			else
 			{
 				echo "<br />Account created successfully.";
@@ -81,8 +81,8 @@ _END;
  * @param string $var the name of the element in the POST array to retrieve
  * @return string
  */
-function get_post($var)
+function get_post($db_server,$var)
 {
-	return mysql_real_escape_string($_POST[$var]);
+	return mysqli_real_escape_string($db_server,$_POST[$var]);
 }
 ?>

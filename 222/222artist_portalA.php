@@ -12,10 +12,10 @@ This block allows our program to access the MySQL database.
 Elaborated on in 2.2.3.
  */
 require_once '../login.php';
-$db_server = mysql_connect($host, $username, $password);
-if (!$db_server) die("Unable to connect to MySQL: " . mysql_error());
-mysql_select_db($dbname)
-	or die("Unable to select database: " . mysql_error());
+$db_server = mysqli_connect($host, $username, $password);
+if (!$db_server) die("Unable to connect to MySQL: " . mysqli_error($db_server));
+mysqli_select_db($db_server,$dbname)
+	or die("Unable to select database: " . mysqli_error($db_server));
 
 	
 // This function allows this page to use a Session to store data in cookies for the user
@@ -39,40 +39,40 @@ if (isset($_SERVER['PHP_AUTH_USER']) &&
 
 	// Uses a MySQL query gathering data to use in the following conditional
 	$query = "SELECT * FROM artists WHERE username='$username'";
-	$result = mysql_query($query);
+	$result = mysqli_query($db_server,$query);
 	
 	// No user with that name exists in the database
-	if (!$result) die ("Database access failed: " . mysql_error());
+	if (!$result) die ("Database access failed: " . mysqli_error($db_server));
 	// A user with that name does exist in the database
-	elseif (mysql_num_rows($result))
+	elseif (mysqli_num_rows($result))
 	{
-		$row = mysql_fetch_row($result); 
+		$row = mysqli_fetch_row($result); 
 		// verifies that the password matches the user name's password. 
 		// The second element in the array returned by the query in the line above represents the password.
 		if ($password == $row[2])
 		{
 			// The user has entered a non-empty string for their first name in the form.
-			if (isset($_POST['firstname']) && get_post('firstname') != '')
+			if (isset($_POST['firstname']) && get_post($db_server,'firstname') != '')
 			{
 				// Attempt to update the first name of the artist
 				$query = "UPDATE artists SET " . 
-					"firstname='" . get_post('firstname') . 
+					"firstname='" . get_post($db_server,'firstname') . 
 					"' WHERE username='" . $row[1] . "'";
-				if (!mysql_query($query, $db_server))
+				if (!mysqli_query($db_server,$query))
 					echo "UPDATE failed: $query<br />" .
-					mysql_error() . "<br /><br />";
+					mysqli_error($db_server) . "<br /><br />";
 			}
 			
 			// The user has entered a non-empty string for their last name in the form.			
-			if (isset($_POST['lastname']) && get_post('lastname') != '')
+			if (isset($_POST['lastname']) && get_post($db_server,'lastname') != '')
 			{
 				// Attempt to update the last name of the artist
 				$query = "UPDATE artists SET " . 
-					"lastname='" . get_post('lastname') . 
+					"lastname='" . get_post($db_server,'lastname') . 
 					"' WHERE username='" . $row[1] . "'";
-				if (!mysql_query($query, $db_server))
+				if (!mysqli_query($db_server,$query))
 					echo "UPDATE failed: $query<br />" .
-					mysql_error() . "<br /><br />";		
+					mysqli_error($db_server) . "<br /><br />";		
 			}
 			
 			// Setting various session data for use in the other pages of this site and/or another
@@ -126,14 +126,14 @@ if (isset($_SERVER['PHP_AUTH_USER']) &&
 					
 					// Find the artistID associated with the username
 					$query = "SELECT * FROM artists WHERE username='" . $username ."'";
-					$result = mysql_query($query, $db_server);
-					if (mysql_num_rows($result)){
-						$row = mysql_fetch_row($result);
+					$result = mysqli_query($db_server,$query);
+					if (mysqli_num_rows($result)){
+						$row = mysqli_fetch_row($result);
 						$userID = $row[0];
 						// Query to find if the image name already exists in the database.
 						$query = "SELECT * FROM images WHERE filename='" . $name . 
 							"' AND userID='" . $userID . "'";
-						$result = mysql_query($query, $db_server);
+						$result = mysqli_query($db_server,$query);
 						// The image name was not found in the database
 						if (!$result)
 						{
@@ -141,9 +141,9 @@ if (isset($_SERVER['PHP_AUTH_USER']) &&
 							$query = "INSERT INTO images(imageID, artistID, filename, thumbname) VALUES('','" . 
 								$userID . "', '" . $name . "', '" . $no_extension_name['filename'] . "thumb.jpg')";
 							// The update of the database fails.
-							if (!mysql_query($query, $db_server)){
+							if (!mysqli_query($db_server,$query)){
 								echo "UPDATE failed: $query<br />" .
-								mysql_error() . "<br /><br />";	
+								mysqli_error($db_server) . "<br /><br />";	
 							}
 							// Run the python script to create a thumbnail image of the uploaded image.
 							popen('python thumbs.py ' . $username . ' ' . $name, 'w'); 
@@ -176,7 +176,7 @@ else
 echo "</body></html>";
 
 // MySQL function to close the database when we're done with it.
-mysql_close($db_server);
+mysqli_close($db_server);
 
 /** 
  * Quality of life function to reduce the amount of code needed to retrieve POST data
@@ -184,8 +184,8 @@ mysql_close($db_server);
  * @param string $var the name of the element in the POST array to retrieve
  * @return string
  */
-function get_post($var)
+function get_post($db_server,$var)
 {
-	return mysql_real_escape_string($_POST[$var]);
+	return mysqli_real_escape_string($db_server,$_POST[$var]);
 }
 ?>

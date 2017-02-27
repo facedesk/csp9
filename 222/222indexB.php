@@ -12,10 +12,10 @@ This block allows our program to access the MySQL database.
 Elaborated on in 2.2.3.
  */
 require_once '../login.php';
-$db_server = mysql_connect($host, $username, $password);
-if (!$db_server) die("Unable to connect to MySQL: " . mysql_error());
-mysql_select_db($dbname)
-	or die("Unable to select database: " . mysql_error());
+$db_server = mysqli_connect($host, $username, $password);
+if (!$db_server) die("Unable to connect to MySQL: " . mysqli_error($db_server));
+mysqli_select_db($db_server,$dbname)
+	or die("Unable to select database: " . mysqli_error($db_server));
 	
 echo "<script type='text/javascript' src='222popouts.js'></script>";
 echo <<<_END
@@ -53,13 +53,13 @@ else
 	echo "Or click <a href='222account_creationB.php'>here to create an artist account</a>.<br />";
 }
 $query = "SELECT * FROM artists WHERE firstname='" . $_POST['firstname'] . "' OR lastname='" . $_POST['lastname'] . "'";
-$result_artist = mysql_query($query);
-$row = mysql_fetch_row($result_artist);
+$result_artist = mysqli_query($db_server,$query);
+$row = mysqli_fetch_row($result_artist);
 $artistID = $row[0];
 $artistUserName = $row[1];
 $firstName = $row[3];
 $query = "SELECT * FROM images WHERE artistID='" . $artistID . "'";
-$image_info_table = mysql_query($query);
+$image_info_table = mysqli_query($db_server,$query);
 // Call a function defined later in this file, with four arguments
 display_table($artistUserName, $image_info_table, $dbname, $firstName);
 
@@ -86,7 +86,7 @@ function display_table($artistUserName, $image_info_table, $dbname, $firstName)
 {
 	echo "<TABLE><CAPTION>Your Results:</CAPTION>";
 	$closed_tr = 0; // flag, used to determine if we are at the end of a row when the loop terminates
-	$num_images = mysql_num_rows($image_info_table);
+	$num_images = mysqli_num_rows($image_info_table);
 	
 	if ($image_info_table)
 	{
@@ -94,7 +94,7 @@ function display_table($artistUserName, $image_info_table, $dbname, $firstName)
 		for ($count = 0; $count < $num_images; $count++)
 		{
 			// The following few lines store information from specific cells in the data about an image
-			$image_row = mysql_fetch_row($image_info_table); // Advances a row each time it is called
+			$image_row = mysqli_fetch_row($image_info_table); // Advances a row each time it is called
 			$image_name = $image_row[2];
 			$thumb_name = $image_row[3];
 			$image_path = pathinfo($image_name);

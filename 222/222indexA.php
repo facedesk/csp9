@@ -12,10 +12,10 @@ This block allows our program to access the MySQL database.
 Elaborated on in 2.2.3.
  */
 require_once '../login.php';
-$db_server = mysql_connect($host, $username, $password);
-if (!$db_server) die("Unable to connect to MySQL: " . mysql_error());
-mysql_select_db($dbname)
-	or die("Unable to select database: " . mysql_error());
+$db_server = mysqli_connect($host, $username, $password);
+if (!$db_server) die("Unable to connect to MySQL: " . mysqli_error($db_server));
+mysqli_select_db($db_server,$dbname)
+	or die("Unable to select database: " . mysqli_error($db_server));
 
 // $_COOKIE is a data structure that holds all cookies for this site.
 // This conditional verifies that the cookie 'username' contains data.
@@ -38,12 +38,12 @@ else
 	echo "Or click <a href='222account_creationA.php'>here to create an artist account</a>.<br />";
 }
 $query = "SELECT * FROM artists WHERE firstname='" . $_POST['firstname'] . "' OR lastname='" . $_POST['lastname'] . "'";
-$result_artist = mysql_query($query);
-$row = mysql_fetch_row($result_artist);
+$result_artist = mysqli_query($db_server,$query);
+$row = mysqli_fetch_row($result_artist);
 $artistID = $row[0];
 $artistUserName = $row[1];
 $query = "SELECT * FROM images WHERE artistID='" . $artistID . "'";
-$image_info_table = mysql_query($query);
+$image_info_table = mysqli_query($db_server,$query);
 // Call a function defined later in this file, with two arguments
 display_table($artistUserName, $image_info_table, $dbname);
 
@@ -74,10 +74,10 @@ function display_table($artistUserName, $image_info_table, $dbname)
 	if ($image_info_table)
 	{
 		// Iterate through all of the returned images, placing them in a table for easy viewing
-		for ($count = 0; $count < mysql_num_rows($image_info_table); $count++)
+		for ($count = 0; $count < mysqli_num_rows($image_info_table); $count++)
 		{
 			// The following few lines store information from specific cells in the data about an image
-			$image_row = mysql_fetch_row($image_info_table); // Advances a row each time it is called
+			$image_row = mysqli_fetch_row($image_info_table); // Advances a row each time it is called
 			$thumb_name = $image_row[3];
 			
 			// Remember the mod operator, this one gives us the remainder when $count is divided by 6

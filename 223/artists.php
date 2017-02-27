@@ -3,7 +3,7 @@
     
 // Accesses the login information to connect to the MySQL server using your credentials and database
 require_once '../login.php';
-$connection = mysql_connect($host, $username, $password);
+$connection = mysqli_connect($host, $username, $password);
 
 
 
