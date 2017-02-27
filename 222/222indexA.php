@@ -38,6 +38,7 @@ else
 	echo "Or click <a href='222account_creationA.php'>here to create an artist account</a>.<br />";
 }
 $query = "SELECT * FROM artists WHERE firstname='" . $_POST['firstname'] . "' OR lastname='" . $_POST['lastname'] . "'";
+
 $result_artist = mysqli_query($db_server,$query);
 $row = mysqli_fetch_row($result_artist);
 $artistID = $row[0];
